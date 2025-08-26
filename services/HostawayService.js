@@ -1,11 +1,11 @@
-import HostawayTokenModel from "../models/HostawayTokenModel";
-import { getCache, setCache } from "../utils/cacheUtil";
-import instance from "./axiosInstance";
+import HostawayModel from "../models/HostawayModel.js";
+import { getCache, setCache } from "../utils/cacheUtil.js";
+import instance from "./axiosInstance.js";
 
 export const getTokenFromDB = async (userId) => {
   let token = getCache(`HostawayToken_${userId}`);
   if (!token) {
-    const data = await HostawayTokenModel.findOne({ userId });
+    const data = await HostawayModel.findOne({ userId });
     if (!data) return null;
     setCache(`HostawayToken_${userId}`, data.token);
     token = data.token;
@@ -14,11 +14,7 @@ export const getTokenFromDB = async (userId) => {
 };
 
 export const storeTokenInDB = async (userId, token) => {
-  await HostawayTokenModel.findOneAndUpdate(
-    { userId },
-    { token },
-    { upsert: true }
-  );
+  await HostawayModel.findOneAndUpdate({ userId }, { token }, { upsert: true });
 };
 
 export const getAllReviews = async (userId) => {

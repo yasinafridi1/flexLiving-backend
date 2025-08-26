@@ -16,14 +16,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    clientId: {
-      type: Number,
-      required: false,
-    },
-    clientSecret: {
-      type: String,
-      required: false,
-    },
     role: {
       type: String,
       enum: Object.values(USER_ROLES),
@@ -41,11 +33,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    accesstoken: {
+    accessToken: {
       type: String,
       required: false,
     },
-    refreshtoken: {
+    refreshToken: {
       type: String,
       required: false,
     },

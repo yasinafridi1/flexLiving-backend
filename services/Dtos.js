@@ -1,14 +1,11 @@
-function calculateTotalAmount(price, quantity) {
-  return price * quantity;
-}
-
 export const userDTO = (user, hostAwayConnection) => {
-  const { _id, fullName, email, role, clientId, clientSecret } = user;
+  const { _id, fullName, email, role } = user;
 
   let maskedSecret = null;
-  if (clientSecret) {
-    const last4 = clientSecret.slice(-4); // get last 4 chars
-    const masked = "*".repeat(clientSecret.length - 4) + last4;
+  if (hostAwayConnection?.clientSecret) {
+    const last4 = hostAwayConnection.clientSecret.slice(-4); // get last 4 chars
+    const masked =
+      "*".repeat(hostAwayConnection.clientSecret.length - 4) + last4;
     maskedSecret = masked;
   }
 
@@ -17,8 +14,8 @@ export const userDTO = (user, hostAwayConnection) => {
     fullName,
     email,
     role,
-    clientId,
-    clientSecret: maskedSecret,
-    hostAwayConnection: hostAwayConnection ? true : false,
+    clientId: hostAwayConnection?.clientId || null,
+    clientSecret: hostAwayConnection?.clientSecret || null,
+    hostAwayConnection: hostAwayConnection?.token ? true : false,
   };
 };

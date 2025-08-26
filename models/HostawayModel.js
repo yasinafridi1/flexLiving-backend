@@ -11,10 +11,18 @@ const tokenSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    clientId: {
+      type: Number,
+      required: false,
+    },
+    clientSecret: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true }
 );
 
-const HostawayTokenModel = mongoose.model("HostawayToken", tokenSchema);
+const HostawayModel = mongoose.model("Hostaway", tokenSchema);
 
-export default HostawayTokenModel;
+export default HostawayModel;

@@ -1,9 +1,7 @@
-import envVariables, { USER_ROLES } from "../config/Constants.js";
-import HostawayTokenModel from "../models/HostawayTokenModel.js";
+import envVariables from "../config/Constants.js";
+import HostawayModel from "../models/HostawayModel.js";
 import UserModel from "../models/UserModel.js";
-import { getHostAwayToken } from "../services/axiosInstance.js";
 import { userDTO } from "../services/Dtos.js";
-import { storeTokenInDB } from "../services/HostawayService.js";
 import {
   generateTokens,
   storeTokens,
@@ -51,7 +49,7 @@ export const login = AsyncWrapper(async (req, res, next) => {
   });
 
   await storeTokens(accessToken, refreshToken, user._id);
-  const hostAwayConnection = await HostawayTokenModel.findOne({
+  const hostAwayConnection = await HostawayModel.findOne({
     userId: user._id,
   });
   const userData = userDTO(user, hostAwayConnection);
@@ -90,22 +88,22 @@ export const register = AsyncWrapper(async (req, res, next) => {
   return SuccessMessage(res, "Account created successfully");
 });
 
-// export const logout = AsyncWrapper(async (req, res, next) => {
-//   const userId = req.user.userId;
+export const logout = AsyncWrapper(async (req, res, next) => {
+  const userId = req.user.userId;
 
-//   // Find user by _id
-//   const user = await User.findById(userId);
-//   if (!user) {
-//     return next(new ErrorHandler("User not found", 404));
-//   }
+  // Find user by _id
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
 
-//   // Clear tokens
-//   user.accessToken = "";
-//   user.refreshToken = "";
-//   await user.save();
+  // Clear tokens
+  user.accessToken = "";
+  user.refreshToken = "";
+  await user.save();
 
-//   return SuccessMessage(res, "User logout successfully", null, 200);
-// });
+  return SuccessMessage(res, "User logout successfully");
+});
 
 export const autoLogin = AsyncWrapper(async (req, res, next) => {
   const { refreshToken: refreshTokenFromBody } = req.body;
@@ -115,7 +113,7 @@ export const autoLogin = AsyncWrapper(async (req, res, next) => {
     role: user.role,
   });
   await storeTokens(accessToken, refreshToken, user._id);
-  const hostAwayConnection = await HostawayTokenModel.findOne({
+  const hostAwayConnection = await HostawayModel.findOne({
     userId: user._id,
   });
   const userData = userDTO(user, hostAwayConnection);
@@ -124,56 +122,4 @@ export const autoLogin = AsyncWrapper(async (req, res, next) => {
     accessToken,
     refreshToken,
   });
-});
-
-export const addUpdateHostawayKeys = AsyncWrapper(async (req, res, next) => {
-  const { clientId, clientSecret } = req.body;
-
-  // Update the user's Hostaway keys and return the updated document
-  const updatedUser = await UserModel.findByIdAndUpdate(
-    req.user._id,
-    { clientId, clientSecret },
-    { new: true } // return the updated document
-  );
-
-  // Convert to DTO
-  const userData = userDTO(updatedUser);
-
-  return SuccessMessage(res, "Hostaway keys updated successfully", {
-    userData,
-  });
-});
-
-export const connectHostaway = AsyncWrapper(async (req, res, next) => {
-  const user = await UserModel.findById(req.user._id);
-  if (!user) {
-    return next(new ErrorHandler("User not found", 404));
-  }
-
-  if (!user.clientId || !user.clientSecret) {
-    return next(new ErrorHandler("Hostaway credentials are missing", 400));
-  }
-
-  const response = await getHostAwayToken(user.clientId, user.clientSecret);
-  // save in db
-  // await storeTokenInDB(user._id, response);
-  return SuccessMessage(res, "Hostaway connected successfully", { response });
-});
-
-export const revokeHostawayToken = AsyncWrapper(async (req, res, next) => {
-  const user = await UserModel.findById(req.user._id);
-  if (!user) {
-    return next(new ErrorHandler("User not found", 404));
-  }
-
-  // Call the API to revoke the token
-  const response = await instance.post("/revokeToken", {
-    userId: user._id,
-  });
-
-  //check and delete the data from mongodb
-  // await HostawayTokenModel.deleteOne({ userId: user._id });
-
-  console.log("Token revoked:", response.data);
-  return SuccessMessage(res, "Hostaway token revoked successfully");
 });

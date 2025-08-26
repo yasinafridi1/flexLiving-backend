@@ -1,5 +1,6 @@
 import express from "express";
 import AuthRoutes from "./AuthRoutes.js";
+import HostawayRoutes from "./HostawayRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { existsSync } from "fs";
@@ -16,6 +17,7 @@ router.get("/health", (req, res) => {
 });
 
 router.use("/auth", AuthRoutes);
+router.use("/hostaway", HostawayRoutes);
 
 // router.get(
 //   "/file/:fileName",
