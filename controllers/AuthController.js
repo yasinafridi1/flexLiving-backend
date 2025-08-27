@@ -89,7 +89,7 @@ export const register = AsyncWrapper(async (req, res, next) => {
 });
 
 export const logout = AsyncWrapper(async (req, res, next) => {
-  const userId = req.user.userId;
+  const userId = req.user._id;
 
   // Find user by _id
   const user = await UserModel.findById(userId);

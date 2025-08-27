@@ -14,7 +14,11 @@ export const getTokenFromDB = async (userId) => {
 };
 
 export const storeTokenInDB = async (userId, token) => {
-  await HostawayModel.findOneAndUpdate({ userId }, { token }, { upsert: true });
+  return await HostawayModel.findOneAndUpdate(
+    { userId },
+    { token },
+    { upsert: true }
+  );
 };
 
 export const getAllReviews = async (userId) => {

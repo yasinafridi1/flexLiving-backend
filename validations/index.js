@@ -1,16 +1,4 @@
 import Joi from "joi";
-import { PAYMENT_OPTIONS, USER_STATUS } from "../config/Constants.js";
-
-const phoneSchema = Joi.string()
-  .pattern(/^\+(92\d{10}|966\d{9})$/)
-  .length(13)
-  .required()
-  .messages({
-    "string.pattern.base": "Phone number must start with +92 or +966",
-    "string.empty": "Phone number is required.",
-    "string.length": "Phone number must be exactly 13 characters long.",
-    "any.required": "Phone number is required.",
-  });
 
 const emailSchema = Joi.string()
   .email({ tlds: { allow: true } }) // Disable strict TLD validation

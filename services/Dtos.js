@@ -15,7 +15,7 @@ export const userDTO = (user, hostAwayConnection) => {
     email,
     role,
     clientId: hostAwayConnection?.clientId || null,
-    clientSecret: hostAwayConnection?.clientSecret || null,
+    clientSecret: maskedSecret,
     hostAwayConnection: hostAwayConnection?.token ? true : false,
   };
 };

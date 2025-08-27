@@ -1,13 +1,22 @@
 import express from "express";
 import cors from "cors";
 import router from "./routes/index.js";
-import dbConnection from "./config/dbConnect.js";
 import envVariables from "./config/Constants.js";
 import ErrorMiddleware from "./middlewares/Error.js";
+import mongoose from "mongoose";
 
 const app = express();
 
-const { appPort } = envVariables;
+const { appPort, dbUrl } = envVariables;
+
+mongoose
+  .connect(dbUrl)
+  .then(() => {
+    console.log("database connected");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 const allowedUrls = ["http://localhost:5173"];
 

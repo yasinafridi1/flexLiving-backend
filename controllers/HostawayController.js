@@ -1,7 +1,8 @@
 import HostawayModel from "../models/HostawayModel.js";
 import UserModel from "../models/UserModel.js";
-import instance from "../services/axiosInstance.js";
+import instance, { getHostAwayToken } from "../services/axiosInstance.js";
 import { userDTO } from "../services/Dtos.js";
+import { storeTokenInDB } from "../services/HostawayService.js";
 import AsyncWrapper from "../utils/AsyncWrapper.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import SuccessMessage from "../utils/SuccessMessage.js";
@@ -40,13 +41,13 @@ export const connectHostaway = AsyncWrapper(async (req, res, next) => {
   }
 
   const response = await getHostAwayToken(
-    hostAway.clientId,
-    hostAway.clientSecret
+    hostAway?.clientId,
+    hostAway?.clientSecret
   );
 
-  //   // save in db
-  //   await storeTokenInDB(user._id, response);
-  return SuccessMessage(res, "Hostaway connected successfully", { response });
+  const result = await storeTokenInDB(user._id, response);
+  const userData = userDTO(user, result);
+  return SuccessMessage(res, "Hostaway connected successfully", { userData });
 });
 
 export const revokeHostawayToken = AsyncWrapper(async (req, res, next) => {

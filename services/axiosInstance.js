@@ -1,11 +1,8 @@
 import axios from "axios";
-import envVariables from "../config/Constants";
-import {
-  getTokenFromDB,
-  storeTokenInDB,
-  getHostAwayToken,
-} from "./HostawayService";
+import envVariables from "../config/Constants.js";
+import { getTokenFromDB, storeTokenInDB } from "./HostawayService.js";
 const { hostAwayBaseUrl } = envVariables;
+import qs from "qs";
 
 const instance = axios.create({
   baseURL: hostAwayBaseUrl,
@@ -59,12 +56,23 @@ export const getHostAwayToken = async (clientId, clientSecret) => {
     client_secret: clientSecret,
     scope: "general",
   });
+  try {
+    const response = await axios.post(`${hostAwayBaseUrl}/accessTokens`, body, {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    });
 
-  const response = await axios.post(`${hostAwayBaseUrl}/accessTokens`, body, {
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
-
-  console.log("New Hostaway token:", response.data);
+    return response?.data?.access_token;
+  } catch (error) {
+    console.error(
+      "Error fetching Hostaway token:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error?.response?.data ||
+        error?.message ||
+        "Failed to fetch Hostaway token"
+    );
+  }
 };
 
 export default instance;

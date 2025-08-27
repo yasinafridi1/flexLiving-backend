@@ -12,8 +12,11 @@ const router = express.Router();
 
 router
   .route("/")
-  .post(validateBody(addUpdateHostawayApiKeysSchema), addUpdateHostawayKeys)
-  .patch(connectHostaway)
+  .post(
+    [auth, validateBody(addUpdateHostawayApiKeysSchema)],
+    addUpdateHostawayKeys
+  )
+  .patch(auth, connectHostaway)
   .delete(auth, revokeHostawayToken);
 
 export default router;
