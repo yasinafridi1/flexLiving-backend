@@ -1,4 +1,6 @@
 import { HOSTAWAY_CHANNEL_MAP } from "../config/Constants";
+import ReviewModel from "../models/ReviewModel";
+import mockReviews from "../mockdata.json";
 
 export function normalizeHostaway(rawData, userId) {
   if (!rawData) return [];
@@ -10,7 +12,7 @@ export function normalizeHostaway(rawData, userId) {
     }));
 
     return {
-      id: review?.id,
+      hostawayId: review?.id,
       type: review?.type || "guest-to-host",
       status: review?.status || "awaiting",
       rating: review?.rating ? review.rating / 2 : null,
@@ -37,4 +39,16 @@ export function normalizeHostaway(rawData, userId) {
       userId: userId,
     };
   });
-}
+} // your 30 reviews JSON
+
+export const seedReviews = async (userId) => {
+  try {
+    // Normalize the raw data
+    const normalizedReviews = normalizeHostaway(mockReviews, userId);
+
+    // Insert all into the database
+    await ReviewModel.insertMany(normalizedReviews);
+  } catch (error) {
+    console.error("Error inserting reviews:", error);
+  }
+};

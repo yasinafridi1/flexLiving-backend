@@ -19,3 +19,38 @@ export const userDTO = (user, hostAwayConnection) => {
     hostAwayConnection: hostAwayConnection?.token ? true : false,
   };
 };
+
+export const reviewDto = (data) => {
+  const {
+    _id,
+    type,
+    status,
+    rating,
+    comment,
+    listingName,
+    channel,
+    guestName,
+    submittedAt,
+    arrivedAt,
+    departureDate,
+    categories,
+    approved,
+    source,
+  } = data;
+  return {
+    _id,
+    type,
+    status,
+    rating,
+    comment,
+    listingName,
+    channel,
+    guestName,
+    submittedAt,
+    arrivedAt,
+    departureDate,
+    categories,
+    approved,
+    source,
+  };
+};

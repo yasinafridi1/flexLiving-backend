@@ -19,6 +19,11 @@ const tokenSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    dataStatus: {
+      type: String,
+      enum: ["not_started", "pending", "completed"],
+      default: false,
+    },
   },
   { timestamps: true }
 );

@@ -67,3 +67,33 @@ export const revokeHostawayToken = AsyncWrapper(async (req, res, next) => {
   console.log("Token revoked:", response.data);
   return SuccessMessage(res, "Hostaway token revoked successfully");
 });
+
+export const getAllReviewsFromHostaway = AsyncWrapper(
+  async (req, res, next) => {
+    const integration = await HostawayModel.findOne({ userId: req.user._id });
+    if (!integration) {
+      return next(
+        new ErrorHandler(
+          "User doesnot have integrated Hostaway. Please add your client id and client secret and try again",
+          403
+        )
+      );
+    }
+
+    return SuccessMessage(res, "Reviews fetched successfully", { reviews });
+  }
+);
+
+export const getDataSyncStatus = AsyncWrapper(async (req, res, next) => {
+  const reviewSyncStatus = await HostawayModel.findOne({
+    userId: req.user._id,
+  }).select("dataStatus");
+
+  if (!reviewSyncStatus) {
+    return next(new ErrorHandler("Hostaway connection not found", 404));
+  }
+
+  return SuccessMessage(res, "Status fetched successfully", {
+    reviewSyncStatus,
+  });
+});
