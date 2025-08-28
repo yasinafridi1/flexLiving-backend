@@ -40,10 +40,18 @@ export const getAllReviews = AsyncWrapper(async (req, res, next) => {
     query.channel = { $in: channel };
   }
 
-  if (minRating || maxRating) {
-    query.rating = {};
-    if (minRating) query.rating.$gte = parseFloat(minRating);
-    if (maxRating) query.rating.$lte = parseFloat(maxRating);
+  if (minRating !== undefined || maxRating !== undefined) {
+    const ratingFilter = {};
+
+    if (minRating !== undefined) {
+      ratingFilter.$gte = parseFloat(minRating);
+    }
+
+    if (maxRating !== undefined) {
+      ratingFilter.$lte = parseFloat(maxRating);
+    }
+
+    query.rating = ratingFilter;
   }
 
   if (approved !== undefined) {
@@ -78,12 +86,12 @@ export const updateReview = AsyncWrapper(async (req, res, next) => {
     return next(new ErrorHandler("Review not found", 404));
   }
 
-  // Toggle approved field
-  review.approved = !review.approved;
-
-  await review.save();
-
-  const reviewData = reviewDto(review);
+  const updatedReview = await ReviewModel.findByIdAndUpdate(
+    review._id,
+    { $set: { approved: !review.approved } },
+    { new: true } // return the updated document
+  );
+  const reviewData = reviewDto(updatedReview);
   return SuccessMessage(res, "Review updated successfully", { reviewData });
 });
 

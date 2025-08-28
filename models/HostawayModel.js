@@ -22,7 +22,7 @@ const tokenSchema = new mongoose.Schema(
     dataStatus: {
       type: String,
       enum: ["not_started", "pending", "completed"],
-      default: false,
+      default: "not_started",
     },
   },
   { timestamps: true }

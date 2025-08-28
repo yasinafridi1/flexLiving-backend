@@ -9,6 +9,7 @@ import {
 } from "../services/JwtService.js";
 import AsyncWrapper from "../utils/AsyncWrapper.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
+import { deleteFile } from "../utils/fileHandler.js";
 import SuccessMessage from "../utils/SuccessMessage.js";
 import bcrypt from "bcrypt";
 
@@ -121,5 +122,49 @@ export const autoLogin = AsyncWrapper(async (req, res, next) => {
     userData,
     accessToken,
     refreshToken,
+  });
+});
+
+export const updateUser = AsyncWrapper(async (req, res, next) => {
+  const userId = req.user._id;
+  const { fullName, email } = req.body;
+
+  const user = await UserModel.findById(userId);
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  // Check if email is already used by another user
+  if (email) {
+    const existingUser = await UserModel.findOne({
+      email,
+      _id: { $ne: userId },
+    });
+    if (existingUser) {
+      if (req.file) {
+        deleteFile(req?.file?.filename);
+      }
+      return next(
+        new ErrorHandler("Email is already taken by another user", 400)
+      );
+    }
+  }
+
+  const update = {};
+  if (fullName) update.fullName = fullName;
+  if (email) update.email = email;
+  if (req.file) {
+    if (user?.profilePicture) {
+      deleteFile(user.profilePicture); // delete old file
+    }
+    update.profilePicture = req.file.filename;
+  }
+
+  const updatedUser = await UserModel.findByIdAndUpdate(userId, update, {
+    new: true,
+  });
+
+  return SuccessMessage(res, "User data updated successfully", {
+    userData: userDTO(updatedUser),
   });
 });

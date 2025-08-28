@@ -4,10 +4,13 @@ import router from "./routes/index.js";
 import envVariables from "./config/Constants.js";
 import ErrorMiddleware from "./middlewares/Error.js";
 import mongoose from "mongoose";
+import { makeRequiredDirectories } from "./utils/fileHandler.js";
 
 const app = express();
 
 const { appPort, dbUrl } = envVariables;
+
+makeRequiredDirectories();
 
 mongoose
   .connect(dbUrl)

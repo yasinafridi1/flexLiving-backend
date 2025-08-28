@@ -3,6 +3,7 @@ import envVariables from "../config/Constants.js";
 import { getTokenFromDB, storeTokenInDB } from "./HostawayService.js";
 const { hostAwayBaseUrl } = envVariables;
 import qs from "qs";
+import HostawayModel from "../models/HostawayModel.js";
 
 const instance = axios.create({
   baseURL: hostAwayBaseUrl,
@@ -12,9 +13,11 @@ const instance = axios.create({
   },
 });
 
-// Request interceptor to attach token
+// Request interceptor to attach bearer token
 instance.interceptors.request.use(async (config) => {
-  const { userId } = config; // pass userId in request config
+  if (config._retryWithNewToken) return config; // skip for retried requests
+
+  const { userId } = config.meta || {};
   if (!userId) throw new Error("userId is required for Hostaway API");
 
   let token = await getTokenFromDB(userId);
@@ -24,38 +27,46 @@ instance.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Response interceptor: retry on 403
 instance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    const { userId } = originalRequest;
+    const { userId } = originalRequest.meta || {};
 
     if (error.response?.status === 403 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Call your function to get a new token
       const newToken = await getHostAwayToken(userId);
-
-      // Save new token in DB
       await storeTokenInDB(userId, newToken);
 
-      // Retry original request with new token
-      originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-      return instance(originalRequest);
+      return instance({
+        ...originalRequest,
+        headers: {
+          ...originalRequest.headers,
+          Authorization: `Bearer ${newToken}`,
+        },
+        _retryWithNewToken: true,
+      });
     }
 
     return Promise.reject(error);
   }
 );
 
-export const getHostAwayToken = async (clientId, clientSecret) => {
+export const getHostAwayToken = async (userId) => {
+  const hostAway = await HostawayModel.findOne({ userId });
   const body = qs.stringify({
     grant_type: "client_credentials",
-    client_id: clientId,
-    client_secret: clientSecret,
+    client_id: hostAway.clientId,
+    client_secret: hostAway.clientSecret,
     scope: "general",
   });
+
+  console.log(
+    "Calling Hostaway API to get access token",
+    hostAway.clientSecret
+  );
+
   try {
     const response = await axios.post(`${hostAwayBaseUrl}/accessTokens`, body, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -71,6 +82,28 @@ export const getHostAwayToken = async (clientId, clientSecret) => {
       error?.response?.data ||
         error?.message ||
         "Failed to fetch Hostaway token"
+    );
+  }
+};
+
+export const deleteToken = async (token) => {
+  try {
+    const response = await axios.delete(
+      `${hostAwayBaseUrl}/accessTokens?token=${token}`,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error(
+      "Error deleting Hostaway token:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error?.response?.data ||
+        error?.message ||
+        "Failed to delete Hostaway token"
     );
   }
 };

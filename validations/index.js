@@ -49,3 +49,8 @@ export const addUpdateHostawayApiKeysSchema = Joi.object({
   }),
   clientSecret: stringValidation("Client Secret"),
 });
+
+export const updateUserSchema = Joi.object({
+  email: emailSchema,
+  fullName: fullNameSchema,
+});

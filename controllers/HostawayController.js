@@ -1,8 +1,12 @@
 import HostawayModel from "../models/HostawayModel.js";
+import ReviewModel from "../models/ReviewModel.js";
 import UserModel from "../models/UserModel.js";
-import instance, { getHostAwayToken } from "../services/axiosInstance.js";
+import instance, {
+  deleteToken,
+  getHostAwayToken,
+} from "../services/axiosInstance.js";
 import { userDTO } from "../services/Dtos.js";
-import { storeTokenInDB } from "../services/HostawayService.js";
+import { getAllReviews, storeTokenInDB } from "../services/HostawayService.js";
 import AsyncWrapper from "../utils/AsyncWrapper.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 import SuccessMessage from "../utils/SuccessMessage.js";
@@ -40,10 +44,7 @@ export const connectHostaway = AsyncWrapper(async (req, res, next) => {
     return next(new ErrorHandler("Hostaway credentials not found", 404));
   }
 
-  const response = await getHostAwayToken(
-    hostAway?.clientId,
-    hostAway?.clientSecret
-  );
+  const response = await getHostAwayToken(req.user._id);
 
   const result = await storeTokenInDB(user._id, response);
   const userData = userDTO(user, result);
@@ -56,31 +57,54 @@ export const revokeHostawayToken = AsyncWrapper(async (req, res, next) => {
     return next(new ErrorHandler("User not found", 404));
   }
 
-  // Call the API to revoke the token
-  const response = await instance.post("/revokeToken", {
-    userId: user._id,
+  let hostaway = await HostawayModel.findOne({ userId: req.user._id });
+  if (!hostaway || !hostaway.token) {
+    return next(new ErrorHandler("Hostaway credentials not found", 404));
+  }
+
+  try {
+    await deleteToken(hostaway.token);
+  } catch (error) {
+    console.error("Failed to delete from Hostaway API:", error.message);
+  } finally {
+    // Always update DB to clear the token field
+    hostaway = await HostawayModel.findOneAndUpdate(
+      { userId: user._id },
+      { $set: { token: null } },
+      { new: true } // return updated doc
+    );
+  }
+
+  const userData = userDTO(user, hostaway);
+  return SuccessMessage(res, "Hostaway token revoked successfully", {
+    userData,
   });
-
-  //check and delete the data from mongodb
-  // await HostawayTokenModel.deleteOne({ userId: user._id });
-
-  console.log("Token revoked:", response.data);
-  return SuccessMessage(res, "Hostaway token revoked successfully");
 });
 
 export const getAllReviewsFromHostaway = AsyncWrapper(
   async (req, res, next) => {
-    const integration = await HostawayModel.findOne({ userId: req.user._id });
-    if (!integration) {
-      return next(
-        new ErrorHandler(
-          "User doesnot have integrated Hostaway. Please add your client id and client secret and try again",
-          403
-        )
-      );
+    const hostaway = await HostawayModel.findOneAndUpdate(
+      { userId: req.user._id },
+      { $set: { dataStatus: "pending" } }
+    );
+    if (!hostaway || !hostaway.token) {
+      return next(new ErrorHandler("Hostaway not connected", 400));
     }
 
-    return SuccessMessage(res, "Reviews fetched successfully", { reviews });
+    await ReviewModel.deleteMany({ userId: req.user._id });
+    setImmediate(() => {
+      getAllReviews(req.user._id)
+        .then(() => {
+          console.log("Reviews fetched successfully");
+        })
+        .catch((err) => {
+          console.error(
+            "Error fetching reviews:",
+            err?.response?.data || err?.message || "Unknown error"
+          );
+        });
+    });
+    return SuccessMessage(res, "Data will be synced in the background.");
   }
 );
 

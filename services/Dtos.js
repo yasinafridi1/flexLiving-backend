@@ -14,6 +14,7 @@ export const userDTO = (user, hostAwayConnection) => {
     fullName,
     email,
     role,
+    profilePicture: user?.profilePicture || null,
     clientId: hostAwayConnection?.clientId || null,
     clientSecret: maskedSecret,
     hostAwayConnection: hostAwayConnection?.token ? true : false,
