@@ -96,30 +96,12 @@ export const updateReview = AsyncWrapper(async (req, res, next) => {
 });
 
 export const getApprovedReview = AsyncWrapper(async (req, res, next) => {
-  let { page = 1, limit = 5 } = req.query;
-  const userId = req.user._id;
-
-  page = parseInt(page, 10);
-  limit = parseInt(limit, 10);
-
-  if (isNaN(page) || page < 1) page = 1;
-  if (isNaN(limit) || limit < 1) limit = 10;
-
-  const skip = (page - 1) * limit;
-
-  const query = { userId, approved: true };
-
-  const reviews = await ReviewModel.find(query)
+  const reviews = await ReviewModel.find({ approved: true })
     .sort({ submittedAt: -1 }) // newest first
-    .skip(skip)
-    .limit(limit)
-    .select("comment categories guestName submittedAt source approved rating");
-
-  const reviewData = reviews?.map((item) => reviewDto(item));
+    .select("comment guestName submittedAt approved rating channel");
 
   return SuccessMessage(res, "Approved reviews fetched successfully", {
-    reviewData,
-    currentPage: page,
+    reviews,
   });
 });
 

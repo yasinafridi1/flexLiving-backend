@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 router.route("/").get(auth, getAllReviews);
-router.route("/approved").get(auth, getApprovedReview);
+router.route("/approved").get(getApprovedReview);
 router.route("/:id").get(auth, getReviewDetail).patch(auth, updateReview);
 
 export default router;

@@ -21,7 +21,12 @@ mongoose
     console.log(err);
   });
 
-const allowedUrls = ["http://localhost:5173"];
+const allowedUrls = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://flexliving-frontend-pndw.vercel.app",
+  "https://flexliving-landing.vercel.app",
+];
 
 const corsOption = {
   origin: allowedUrls,
