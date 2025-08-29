@@ -74,15 +74,13 @@ export const getHostAwayToken = async (userId) => {
 
     return response?.data?.access_token;
   } catch (error) {
-    console.error(
-      "Error fetching Hostaway token:",
-      error.response?.data || error.message
-    );
-    throw new Error(
-      error?.response?.data ||
-        error?.message ||
-        "Failed to fetch Hostaway token"
-    );
+    const err = {
+      message:
+        error?.response?.data?.message ||
+        "Something went wrong while connecting hostaway",
+      statusCode: error?.response?.status || 404,
+    };
+    throw err;
   }
 };
 
