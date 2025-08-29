@@ -1,10 +1,6 @@
 import { HOSTAWAY_CHANNEL_MAP } from "../config/Constants.js";
+import { mockReviews } from "../mockdata.js";
 import ReviewModel from "../models/ReviewModel.js";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
-
-const mockDataPath = path.resolve("./mockdata.json");
-const mockReviews = JSON.parse(await readFile(mockDataPath, "utf8"));
 
 export function normalizeHostaway(rawData, userId) {
   if (!rawData) return [];
