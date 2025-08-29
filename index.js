@@ -26,6 +26,7 @@ const allowedUrls = [
   "http://localhost:5174",
   "https://flexliving-frontend-pndw.vercel.app",
   "https://flexliving-landing.vercel.app",
+  "https://flexliving-frontend-mu.vercel.app",
 ];
 
 const corsOption = {
